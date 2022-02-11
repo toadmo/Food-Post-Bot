@@ -64,3 +64,4 @@ Even though there was a [dataset of food images](https://github.com/WuXinyang201
 - Google TensorFlow Hub Food Classifier - https://tfhub.dev/google/aiy/vision/classifier/food_V1/1
 - TensorFlow Transfer Learning Tutorial - https://www.tensorflow.org/tutorials/images/transfer_learning_with_hub#an_imagenet_classifier
 - Building a Twitter Bot Guide - https://realpython.com/twitter-bot-python-tweepy/
+- Tweepy Docs - https://docs.tweepy.org/en/stable/
