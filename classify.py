@@ -1,7 +1,9 @@
 import tensorflow.compat.v2 as tf
 import tensorflow_hub as hub
 import pandas as pd
+import matplotlib.pyplot as plt
 import tweepy
+import os
 import wget
 
 ################### Initializing Models ###################
@@ -51,31 +53,77 @@ except:
 
 ################### Twitter Liking Mentions and Posting Comment Functions ###################
 
-def processImage(tweet):
-    api.create_tweet(in_reply_to_tweet_id=tweet, text=f"Nice .........")
+# def convertImage(url):
+#     wget.download(url, 'image.png')
+#     tfImage = tf.image.convert_image_dtype('image.png')
+#     return tfImage
+
+def convertImageTest(image):
+    tfImage = tf.image.convert_image_dtype(image)
+    return tfImage
+
+def detectFood(convertedImage): 
+    foodImages = []
+    detectResults = detector(convertedImage)
+    # Use a for loop so that if there are multiple foods in the picture
+    for entity, score, box in zip(detectResults['detection_class_entities'], detectResults['detection_scores'], detectResults['detection_boxes']):
+        if entity == 'Food' and score > 0.25:
+            foodImages.append((entity, score, box))
+    return foodImages
+
+def cropImage(image, data):
+    box_indices = tf.zeros(shape=len(data))
+    cropped = tf.image.crop_and_resize(image, data[1], box_indices, [224,224])
+    sess = tf.Session()
+    sess.run(tf.global_variables_initializer())
+    display = cropped.eval(session=sess)
+
+    plt.imshow(display[0])
+    plt.imshow(display[1])
+
+converted = convertImageTest('image.png')
+foodList = detectFood(converted)
+cropImage(converted, foodList)
+
+
+##### HERE ####
+
+    # api.create_tweet(in_reply_to_tweet_id=tweet, text=f"Nice .........")
+
+
+################### OFFLINE API TEST ###################
+
+
 
 
 ################### Listener Declaration and Creation ###################
 
 
-# Class for stream to view tweets in real time
-class Listener(tweepy.StreamListener):
-    def __init__(self, api):
-        self.api = api
-        self.me = api.me()
+# # Class for stream to view tweets in real time
+# class Listener(tweepy.StreamListener):
+#     def __init__(self, api):
+#         self.api = api
+#         self.me = api.me()
     
-    def on_status(self, tweet):
-        api.like(tweet)
-        if 'media' in tweet.entities:
-            for photo in tweet.entities['media']:
-                print(photo['media_url'])
-    
-    def on_error(self, status):
-        print("Stream Error")
-        return False
+#     def on_status(self, tweet):
+#         api.like(tweet)
+#         if 'media' in tweet.entities:
+#             finalImages = []
+#             for photo in tweet.entities['media']:
+#                 # print(photo['media_url'])
+#                 converted = convertImage(photo['media_url'])
+#                 imageMetaData = detectFood(converted)
+#                 if len(imageMetaData) > 0:
+#                     for data in imageMetaData:
+                        
 
-# Declaring listener object and stream
-tagListener = Listener(api)
-tagStream = tweepy.Stream(api.auth, tagListener)
 
-tagStream.filter(track=['@FoodComplimentBot'])
+#     def on_error(self, status):
+#         print("Stream Error")
+#         return False
+
+# # Declaring listener object and stream
+# tagListener = Listener(api)
+# tagStream = tweepy.Stream(api.auth, tagListener)
+
+# tagStream.filter(track=['@FoodComplimentBot'])
