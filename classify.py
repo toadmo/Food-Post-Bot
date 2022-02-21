@@ -58,10 +58,12 @@ except:
 #     tfImage = tf.image.convert_image_dtype('image.png')
 #     return tfImage
 
+# Confirm image to tensor usable by the pretrained models
 def convertImageTest(image):
     tfImage = tf.image.convert_image_dtype(image)
     return tfImage
 
+# Run detection model on the image to find food/box where food is
 def detectFood(convertedImage): 
     foodImages = []
     detectResults = detector(convertedImage)
@@ -71,6 +73,7 @@ def detectFood(convertedImage):
             foodImages.append((entity, score, box))
     return foodImages
 
+# Crop the image based on the box from the detection model and resize to 224x224
 def cropImage(image, data):
     box_indices = tf.zeros(shape=len(data))
     cropped = tf.image.crop_and_resize(image, data[1], box_indices, [224,224])
@@ -81,6 +84,7 @@ def cropImage(image, data):
     plt.imshow(display[0])
     plt.imshow(display[1])
 
+# Run previous functions together to get cropped image of isolated food
 converted = convertImageTest('image.png')
 foodList = detectFood(converted)
 cropImage(converted, foodList)
