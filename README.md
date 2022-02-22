@@ -65,3 +65,4 @@ Even though there was a [dataset of food images](https://github.com/WuXinyang201
 - TensorFlow Transfer Learning Tutorial - https://www.tensorflow.org/tutorials/images/transfer_learning_with_hub#an_imagenet_classifier
 - Building a Twitter Bot Guide - https://realpython.com/twitter-bot-python-tweepy/
 - Tweepy Docs - https://docs.tweepy.org/en/stable/
+- Test Image Source - https://www.delightedcooking.com/what-causes-food-likes-and-dislikes.html

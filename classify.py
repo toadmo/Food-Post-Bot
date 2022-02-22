@@ -26,7 +26,7 @@ channels = 3
 # Loading the labelmap (maps the outputs of the classifier to actual names of food)
 labelmap = pd.read_csv('aiy_food_V1_labelmap.csv')
 
-print("Models initialized")
+print("Models initialized.")
 
 ################### Twitter API Setup ###################
 
@@ -46,12 +46,12 @@ api = tweepy.API(auth)
 # Printing out results of authentication
 try:
     api.verify_credentials()
-    print("Twitter authentication complete")
+    print("Twitter authentication complete.")
 except:
-    print("Error during Twitter authentication")
+    print("Error during Twitter authentication.")
 
 
-################### Twitter Liking Mentions and Posting Comment Functions ###################
+################### Image Detection, Cropping, and Processing ###################
 
 # def convertImage(url):
 #     wget.download(url, 'image.png')
@@ -60,7 +60,7 @@ except:
 
 # Confirm image to tensor usable by the pretrained models
 def convertImageTest(image):
-    tfImage = tf.image.convert_image_dtype(image)
+    tfImage = tf.image.convert_image_dtype(image, dtype=tf.float32)
     return tfImage
 
 # Run detection model on the image to find food/box where food is
@@ -73,10 +73,10 @@ def detectFood(convertedImage):
             foodImages.append((entity, score, box))
     return foodImages
 
-# Crop the image based on the box from the detection model and resize to 224x224
+# Crop the image based on the box from the detection model and resize to height and width accepted by the model
 def cropImage(image, data):
     box_indices = tf.zeros(shape=len(data))
-    cropped = tf.image.crop_and_resize(image, data[1], box_indices, [224,224])
+    cropped = tf.image.crop_and_resize(image, data[1], box_indices, [height, width])
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
     display = cropped.eval(session=sess)
@@ -85,9 +85,17 @@ def cropImage(image, data):
     plt.imshow(display[1])
 
 # Run previous functions together to get cropped image of isolated food
-converted = convertImageTest('image.png')
+converted = convertImageTest('2_food_test.jpg')
 foodList = detectFood(converted)
-cropImage(converted, foodList)
+processed = cropImage(converted, foodList)
+
+
+################### Food Classification and Output ###################
+
+def classify(image):
+    classID = classifier(image)
+    print(classID)
+
 
 
 ##### HERE ####
