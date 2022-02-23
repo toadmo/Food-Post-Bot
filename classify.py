@@ -60,35 +60,40 @@ except:
 
 # Confirm image to tensor usable by the pretrained models
 def convertImageTest(image):
-    tfImage = tf.image.convert_image_dtype(image, dtype=tf.float32)
-    return tfImage
+    resized = plt.imread(image)
+    print(resized.shape)
+    return resized
+    # need to rescale instead.
+    # currently is 800, 985, 3
 
-# Run detection model on the image to find food/box where food is
-def detectFood(convertedImage): 
-    foodImages = []
-    detectResults = detector(convertedImage)
-    # Use a for loop so that if there are multiple foods in the picture
-    for entity, score, box in zip(detectResults['detection_class_entities'], detectResults['detection_scores'], detectResults['detection_boxes']):
-        if entity == 'Food' and score > 0.25:
-            foodImages.append((entity, score, box))
-    return foodImages
+# # Run detection model on the image to find food/box where food is
+# def detectFood(convertedImage): 
+#     foodImages = []
+#     detectResults = detector(convertedImage)
+#     # Use a for loop so that if there are multiple foods in the picture
+#     for entity, score, box in zip(detectResults['detection_class_entities'], detectResults['detection_scores'], detectResults['detection_boxes']):
+#         if entity == 'Food' and score > 0.25:
+#             foodImages.append((entity, score, box))
+#     return foodImages
 
-# Crop the image based on the box from the detection model and resize to height and width accepted by the model
-def cropImage(image, data):
-    box_indices = tf.zeros(shape=len(data))
-    cropped = tf.image.crop_and_resize(image, data[1], box_indices, [height, width])
-    sess = tf.Session()
-    sess.run(tf.global_variables_initializer())
-    display = cropped.eval(session=sess)
+# # Crop the image based on the box from the detection model and resize to height and width accepted by the model
+# def cropImage(image, data):
+#     box_indices = tf.zeros(shape=len(data))
+#     cropped = tf.image.crop_and_resize(image, data[1], box_indices, [height, width])
+#     sess = tf.Session()
+#     sess.run(tf.global_variables_initializer())
+#     display = cropped.eval(session=sess)
 
-    plt.imshow(display[0])
-    plt.imshow(display[1])
+#     plt.imshow(display[0])
+#     plt.imshow(display[1])
 
 # Run previous functions together to get cropped image of isolated food
 converted = convertImageTest('2_food_test.jpg')
-foodList = detectFood(converted)
-processed = cropImage(converted, foodList)
-
+# print("Image conversion complete.")
+# foodList = detectFood(converted)
+# print("Food detection complete.")
+# processed = cropImage(converted, foodList)
+# print("Image cropped around food.")
 
 ################### Food Classification and Output ###################
 
@@ -102,8 +107,6 @@ def classify(image):
 
     # api.create_tweet(in_reply_to_tweet_id=tweet, text=f"Nice .........")
 
-
-################### OFFLINE API TEST ###################
 
 
 
