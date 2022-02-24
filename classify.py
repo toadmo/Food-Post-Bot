@@ -14,9 +14,11 @@ detectorLink = "https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1"
 # Link to the classifier model
 classifierLink = "https://tfhub.dev/google/aiy/vision/classifier/food_V1/1"
 
+
+# https://www.tensorflow.org/hub/migration_tf2 Since models are TF1
 # Loading the detector and classifiers
-detector = hub.load(detectorLink)
-classifier = hub.load(classifierLink)
+detector = hub.Module(detectorLink)
+classifier = hub.Module(classifierLink)
 
 # Input information for the classifier
 height = 224
@@ -60,40 +62,37 @@ except:
 
 # Confirm image to tensor usable by the pretrained models
 def convertImageTest(image):
-    resized = plt.imread(image)
-    print(resized.shape)
-    return resized
-    # need to rescale instead.
-    # currently is 800, 985, 3
+    converted = plt.imread(image)
+    return converted
 
-# # Run detection model on the image to find food/box where food is
-# def detectFood(convertedImage): 
-#     foodImages = []
-#     detectResults = detector(convertedImage)
-#     # Use a for loop so that if there are multiple foods in the picture
-#     for entity, score, box in zip(detectResults['detection_class_entities'], detectResults['detection_scores'], detectResults['detection_boxes']):
-#         if entity == 'Food' and score > 0.25:
-#             foodImages.append((entity, score, box))
-#     return foodImages
+# Run detection model on the image to find food/box where food is
+def detectFood(convertedImage): 
+    foodImages = []
+    detectResults = detector(convertedImage)
+    # Use a for loop so that if there are multiple foods in the picture
+    for entity, score, box in zip(detectResults['detection_class_entities'], detectResults['detection_scores'], detectResults['detection_boxes']):
+        if entity == 'Food' and score > 0.25:
+            foodImages.append((entity, score, box))
+    return foodImages
 
-# # Crop the image based on the box from the detection model and resize to height and width accepted by the model
-# def cropImage(image, data):
-#     box_indices = tf.zeros(shape=len(data))
-#     cropped = tf.image.crop_and_resize(image, data[1], box_indices, [height, width])
-#     sess = tf.Session()
-#     sess.run(tf.global_variables_initializer())
-#     display = cropped.eval(session=sess)
+# Crop the image based on the box from the detection model and resize to height and width accepted by the model
+def cropImage(image, data):
+    box_indices = tf.zeros(shape=len(data))
+    cropped = tf.image.crop_and_resize(image, data[1], box_indices, [height, width])
+    sess = tf.Session()
+    sess.run(tf.global_variables_initializer())
+    display = cropped.eval(session=sess)
 
-#     plt.imshow(display[0])
-#     plt.imshow(display[1])
+    plt.imshow(display[0])
+    plt.imshow(display[1])
 
 # Run previous functions together to get cropped image of isolated food
 converted = convertImageTest('2_food_test.jpg')
-# print("Image conversion complete.")
-# foodList = detectFood(converted)
-# print("Food detection complete.")
-# processed = cropImage(converted, foodList)
-# print("Image cropped around food.")
+print("Image conversion complete.")
+foodList = detectFood(converted)
+print("Food detection complete.")
+processed = cropImage(converted, foodList)
+print("Image cropped around food.")
 
 ################### Food Classification and Output ###################
 
