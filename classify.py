@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import tweepy
 import os
 import wget
+import config
 
 ################### Initializing Models ###################
 
@@ -30,25 +31,20 @@ print("Models initialized.")
 
 ################### Twitter API Setup ###################
 
-# Reading secrets from extenal file
-with open("secrets.txt", "r") as f:
-    CONSUMER_KEY = f.readline().strip()
-    CONSUMER_SECRET = f.readline().strip()
-    ACCESS_TOKEN = f.readline().strip()
-    ACCESS_TOKEN_SECRET = f.readline().strip()
+# Reading secrets from config file
+
+bearer_token = config.bearer_token
+api_key = config.api_key
+api_key_secret = config.api_key_secret
+access_token = config.access_token
+access_token_secret = config.access_token_secret
 
 # Setting up authentication handler and access token
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-
-api = tweepy.API(auth)
-
-# Printing out results of authentication
-try:
-    api.verify_credentials()
-    print("Twitter authentication complete.")
-except:
-    print("Error during Twitter authentication.")
+client = tweepy.Client(bearer_token=bearer_token,
+                        access_token=access_token,
+                        access_token_secret=access_token_secret,
+                        consumer_key=api_key,
+                        consumer_secret=api_key_secret)
 
 
 ################### Image Detection, Cropping, and Processing ###################
@@ -57,7 +53,6 @@ except:
 def reshapeImage(image):
     imageData = plt.imread(image)
     tensor = tf.image.convert_image_dtype(imageData, tf.float32)[tf.newaxis, ...]
-    box_indices = tf.zeros(shape=(1,), dtype=tf.int32)
     reshaped = tf.image.resize(tensor, [height, width])
     return reshaped
 
