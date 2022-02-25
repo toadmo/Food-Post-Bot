@@ -1,6 +1,7 @@
 import tensorflow.compat.v2 as tf
 import tensorflow_hub as hub
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import tweepy
 import os
@@ -8,17 +9,14 @@ import wget
 
 ################### Initializing Models ###################
 
-# Link to the detector model
-detectorLink = "https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1"
+# https://www.tensorflow.org/hub/migration_tf2 Since models are TF1
 
 # Link to the classifier model
 classifierLink = "https://tfhub.dev/google/aiy/vision/classifier/food_V1/1"
 
-
-# https://www.tensorflow.org/hub/migration_tf2 Since models are TF1
 # Loading the detector and classifiers
-detector = hub.Module(detectorLink)
-classifier = hub.Module(classifierLink)
+classifier = hub.load(classifierLink)
+classifier = classifier.signatures['default']
 
 # Input information for the classifier
 height = 224
@@ -26,7 +24,7 @@ width = 224
 channels = 3
 
 # Loading the labelmap (maps the outputs of the classifier to actual names of food)
-labelmap = pd.read_csv('aiy_food_V1_labelmap.csv')
+labelmap = pd.read_csv('/content/gdrive/MyDrive/Colab Notebooks/FoodBot/aiy_food_V1_labelmap.csv')
 
 print("Models initialized.")
 
@@ -55,58 +53,32 @@ except:
 
 ################### Image Detection, Cropping, and Processing ###################
 
-# def convertImage(url):
-#     wget.download(url, 'image.png')
-#     tfImage = tf.image.convert_image_dtype('image.png')
-#     return tfImage
-
 # Confirm image to tensor usable by the pretrained models
-def convertImageTest(image):
-    converted = plt.imread(image)
-    return converted
+def reshapeImage(image):
+    imageData = plt.imread(image)
+    tensor = tf.image.convert_image_dtype(imageData, tf.float32)[tf.newaxis, ...]
+    box_indices = tf.zeros(shape=(1,), dtype=tf.int32)
+    reshaped = tf.image.resize(tensor, [height, width])
+    return reshaped
 
-# Run detection model on the image to find food/box where food is
-def detectFood(convertedImage): 
-    foodImages = []
-    detectResults = detector(convertedImage)
-    # Use a for loop so that if there are multiple foods in the picture
-    for entity, score, box in zip(detectResults['detection_class_entities'], detectResults['detection_scores'], detectResults['detection_boxes']):
-        if entity == 'Food' and score > 0.25:
-            foodImages.append((entity, score, box))
-    return foodImages
 
-# Crop the image based on the box from the detection model and resize to height and width accepted by the model
-def cropImage(image, data):
-    box_indices = tf.zeros(shape=len(data))
-    cropped = tf.image.crop_and_resize(image, data[1], box_indices, [height, width])
-    sess = tf.Session()
-    sess.run(tf.global_variables_initializer())
-    display = cropped.eval(session=sess)
+converted = reshapeImage('/content/gdrive/MyDrive/Colab Notebooks/FoodBot/2_food_test.jpg')
+minThresh = 0.15
+classification = classifier(converted)
+mostLikely = np.argmax(classification["default"])
+probability = round(np.max(classification["default"])*100,2)
+foodClass = str(labelmap[labelmap.id==mostLikely]).split()[-1]
 
-    plt.imshow(display[0])
-    plt.imshow(display[1])
-
-# Run previous functions together to get cropped image of isolated food
-converted = convertImageTest('2_food_test.jpg')
-print("Image conversion complete.")
-foodList = detectFood(converted)
-print("Food detection complete.")
-processed = cropImage(converted, foodList)
-print("Image cropped around food.")
-
-################### Food Classification and Output ###################
-
-def classify(image):
-    classID = classifier(image)
-    print(classID)
+if probability > minThresh:
+    print(f"Nice {foodClass}! Looks yummy.\nConfidence: {probability}%.")
+else:
+    print(f"Model prediction certainty does not exceed minimum threshold.")
 
 
 
 ##### HERE ####
 
     # api.create_tweet(in_reply_to_tweet_id=tweet, text=f"Nice .........")
-
-
 
 
 
